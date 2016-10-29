@@ -1,0 +1,123 @@
+---
+layout: post
+title:  "This is a test post via draft"
+date:   2016-10-29 15:44:00 +0300
+categories: jekyll update
+---
+This is a very `test post` to see what Jekyll can do. Here is some javascript:
+
+{% highlight javascript %}
+import Ember from 'ember';
+import BaseSerializer from './application';
+const { dasherize } = Ember.String;
+
+let getRouteIDsFor = function(itinerary) {
+  return itinerary.relationships["itinerary-routes"].data.map((itiRo) => {
+    return {
+      type: 'routes',
+      id: this.registry.schema.itineraryRoutes.find(itiRo.id).routeId
+    };
+  });
+};
+
+let getRouteByID = function(routeId) {
+  let attrs = this.registry.schema.routes.find(routeId).attrs;
+  return {
+    id: routeId,
+    type: "routes",
+    attributes: Object.keys(attrs).reduce((hash, key) => {
+      if (key === 'id') { return hash; } // skip id attribute
+      hash[dasherize(key)] = attrs[key];
+      return hash;
+    }, {})
+  };
+};
+
+export default BaseSerializer.extend({
+  include: ['routes'],
+  serialize(response, request) {
+    let json = BaseSerializer.prototype.serialize.apply(this, [response, request]);
+    let people = json.data;
+    let include = this.include.includes('routes');
+    if (!Array.isArray(people)) {
+      people = [people];
+    }
+
+    if (include) {
+      json.included = [];
+    }
+    people.forEach((itinerary) => {
+      itinerary.relationships.routes = {
+        data: getRouteIDsFor.call(this, itinerary)
+      };
+      if (include) {
+        json.included = json.included.concat(
+            itinerary.relationships.routes.data.map((route) => {
+              return getRouteByID.call(this, route.id);
+            })
+            );
+      }
+    });
+
+    return json;
+  }
+});
+{% endhighlight %}
+
+And some JSON:
+
+{% highlight json %}
+{
+  "data":[
+    {
+      "type":"people",
+      "id":"1",
+      "attributes":{
+        "name":"Jane"
+      },
+      "relationships":{
+        "person-groups":{
+          "data":[
+            {
+              "type":"person-groups",
+              "id":"1"
+            },
+            {
+              "type":"person-groups",
+              "id":"2"
+            }
+          ]
+        },
+        "groups":{
+          "data":[
+            {
+              "type":"groups",
+              "id":"1"
+            },
+            {
+              "type":"groups",
+              "id":"2"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "included":[
+    {
+      "id":"1",
+      "type":"groups",
+      "attributes":{
+        "title":"One Group"
+      }
+    },
+    {
+      "id":"2",
+      "type":"groups",
+      "attributes":{
+        "title":"Another Group"
+      }
+    }
+  ]
+}
+{% endhighlight %}
