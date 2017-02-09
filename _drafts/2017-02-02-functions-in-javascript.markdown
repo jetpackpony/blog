@@ -101,6 +101,102 @@ var foo = function () {};
 console.log(typeof foo);  // prints 'function'
 ```
 
+### Immediately executed functions
+
+You can create a function and immediately execute it. This creates the scope contents of which is unavailable outside:
+
+```javascript
+(function () {
+  console.log('immediately executed');
+})(); // prints 'immediately executed'
+```
+
+This keeps everything defined inside a function away from the outside scope. This mechanism is used to implement modules in javascript. For example:
+
+```javascript
+var module = (function() {
+  var baz = 'baz';
+  function foo() { }
+  function bar() { }
+
+  return {
+    foo: foo,
+    bar: bar,
+    baz: baz
+  };
+})();
+
+console.log(typeof foo);  // prints 'undefined'
+console.log(typeof bar);  // prints 'undefined'
+console.log(typeof baz);  // prints 'undefined'
+
+console.log(typeof module.foo);  // prints 'function'
+console.log(typeof module.bar);  // prints 'function'
+console.log(typeof module.baz);  // prints 'string'
+```
+
+#### Difference from function declarations
+
+In this code functions `foo`, `bar` and `baz` are kept away from the outside scope while made available through module variable.
+
+As mentioned above, doing the same with function declarations is not possible:
+
+```javascript
+function foo() {}();  // SyntaxError: Unexpected token )
+```
+
+This throws a syntax error because in javascript parentheses enclose expressions and `()` is not a valid expression. If you pass an argument in the parenthesis, the error goes away:
+
+```javascript
+function foo(num) {
+  console.log('foo called');  // this is never called
+}(1);
+```
+
+But the function never gets called because the interpreter reads is as a function declaration followed by a separate javascript expression:
+
+```javascript
+function foo (num) {
+  console.log('foo called');  // this is never called
+}
+
+(1);
+```
+
+However the same examples with function expressions work as expected:
+
+```javascript
+var foo = function foo(num) { console.log(num) }(1);  // prints '1'
+(function foo(num) { console.log(num); }(1)); // prints '1'
+!function foo(num) { console.log(num); }(1);  // prints '1'
+```
+
+#### Three ways to immediately invoke a function
+
+There are three ways to immediately invoke a function:
+
+```javascript
+console.log(
+  function () {
+    return 1;
+  }()
+);
+console.log(
+  (function () {
+    return 1;
+  })()
+);
+console.log(
+  (function () {
+    return 1;
+  }())
+);
+```
+
+All of those produce the same result. But only the last one is recommended and here's why:
+
+
+
 
 
 examples and difference of calling function-expressions with (function() {}()) and (function() {})() - the returned result???
