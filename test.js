@@ -45,21 +45,26 @@ var foo = function foo(num) { console.log(num) }(1);  // prints '1'
 (function foo(num) { console.log(num); }(1)); // prints '1'
 !function foo(num) { console.log(num); }(1);  // prints '1'
 
+
+(function () {})();
+(function () {}());
+
+
+
+var a = function (f) {
+  console.log(f);
+}
+(function problem(){ return "problem"; }())
+
+
+var a = function (f) {
+  console.log(f); // prints "problem"
+}
+("problem")
 */
 
-console.log(
-  function () {
-    return 1;
-  }()
-);
-console.log(
-  (function () {
-    return 1;
-  })()
-);
-console.log(
-  (function () {
-    return 1;
-  }())
-);
 
+var a = function (f) {
+  console.log(f);
+};
+(function problem(){ return "problem"; }())

@@ -135,8 +135,6 @@ console.log(typeof module.bar);  // prints 'function'
 console.log(typeof module.baz);  // prints 'string'
 ```
 
-#### Difference from function declarations
-
 In this code functions `foo`, `bar` and `baz` are kept away from the outside scope while made available through module variable.
 
 As mentioned above, doing the same with function declarations is not possible:
@@ -171,36 +169,58 @@ var foo = function foo(num) { console.log(num) }(1);  // prints '1'
 !function foo(num) { console.log(num); }(1);  // prints '1'
 ```
 
-#### Three ways to immediately invoke a function
-
-There are three ways to immediately invoke a function:
+There are three ways to immediately invoke a function. First we've seen before:
 
 ```javascript
-console.log(
-  function () {
-    return 1;
-  }()
-);
-console.log(
-  (function () {
-    return 1;
-  })()
-);
-console.log(
-  (function () {
-    return 1;
-  }())
-);
+var a = function () {}();
 ```
 
-All of those produce the same result. But only the last one is recommended and here's why:
+The downside of this way is it cannot be called on its own, meaning you always need a variable assignment or other operations to make it a function expression, otherwise it will become a function declaration.
+
+The other two ways are very similar:
+
+```javascript
+(function () {})();
+(function () {}());
+```
+
+In fact they will produce exactly the same result. But the second one is called Crockford's style and is the recommended approach. He [motivates it this way](http://javascript.crockford.com/code.html):
+
+ > When a function is to be invoked immediately, the entire invocation expression should be wrapped in parens so that it is clear that the value being produced is the result of the function and not the function itself.
+
+So in the first example the result returned from the expression is a function, which is then being called by `()`. In the second example the function is created, then being called and then the result of the execution is returned as expression value. The second one makes it more clear what is going on.
+
+### Semicolon after function expressions
+
+Function expressions should end with semicolons. Most of the time you can safely omit semicolons, but there are situations when omitting then will result in unexpected behavior. For example:
+
+```javascript
+var a = function (f) {
+  console.log(f);
+}
+(function problem(){ return "problem"; }())
+```
+
+It looks like all that we are doing is creating an anonymous function and then immediate invoking some other function. But without the semicolon after the anonymous function what actually happens is anonymous function is called with the result of the execution of the `problem` function. It is easier to see if we write it this way:
+
+```javascript
+var a = function (f) {
+  console.log(f); // prints "problem"
+}
+("problem")
+```
+
+If we add a semicolon after the anonymous function it does not get called and everything behaves as expected:
+
+```javascript
+var a = function (f) {
+  console.log(f);
+};
+(function problem(){ return "problem"; }())
+```
 
 
 
-
-
-examples and difference of calling function-expressions with (function() {}()) and (function() {})() - the returned result???
-example of expression without semicolon
 
 freaky ways to create a function
 new Function
